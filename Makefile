@@ -1,2 +1,2 @@
 all:
-	cc src/main.c -o exe -O3 -lm
+	cc src/main.c -o exe -O0 -lm -g

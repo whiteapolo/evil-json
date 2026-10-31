@@ -7,12 +7,14 @@
 #include "json-string.h"
 #include "json-array.h"
 #include "time.h"
+#include "print-json.h"
 
 #include "json.c"
 #include "flat-pool.c"
 #include "json-array.c"
 #include "json-object.c"
 #include "time.c"
+#include "print-json.c"
 
 size_t get_file_size(FILE *fp)
 {
@@ -46,8 +48,9 @@ int main()
     Flat_Pool pool = flat_pool_new();
     Json_String document;
 
+    const char *file = "data/evil-5mb.json";
 
-    if (!read_file(&pool, "data/20MB.json", &document)) {
+    if (!read_file(&pool, file, &document)) {
         perror("Opps");
         exit(1);
     }
@@ -59,9 +62,12 @@ int main()
     double mb_per_second = document.length / time_elapsed_seconds(start) / 1000000.0;
     printf("(%g MB/s)\n", mb_per_second);
 
-    // printf("%d\n", value.type);
+    printf("File size: %lfmb\n", document.length / 1000000.0);
+    printf("Total memory used: %lfmb\n", pool.offset / 1000000.0);
 
-    // printf("%.*s\n", document.length, document.ptr);
+    print_json(value);
+
+    flat_pool_free(&pool);
 
     return 0;
 }

@@ -3,12 +3,13 @@
 #include "json-array.h"
 #include "json-object.h"
 #include "json-string.h"
+#include "print-json.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
-#define MIN_CAPACITY 4
+#define MIN_CAPACITY 16
 
 typedef struct {
     Json_String document;
@@ -286,7 +287,7 @@ static inline Json_Value json_parse_null(Json_Parse_State *state)
 
 static inline Json_Value json_parse_array(Json_Parse_State *state)
 {
-    json_advance(state);
+    json_expect(state, '[');
     json_skip_spaces(state);
 
     Json_Value *array = json_array_new(state->pool, MIN_CAPACITY);
@@ -310,7 +311,7 @@ static inline Json_Value json_parse_array(Json_Parse_State *state)
 
 static inline Json_Value json_parse_object(Json_Parse_State *state)
 {
-    json_advance(state);
+    json_expect(state, '{');
     json_skip_spaces(state);
 
     Json_Object_Entry *object = json_object_new(state->pool, MIN_CAPACITY);
@@ -330,7 +331,6 @@ static inline Json_Value json_parse_object(Json_Parse_State *state)
 
         json_object_push(&object, key.string, value);
     } while (json_match(state, ','));
-
 
     json_expect(state, '}');
 

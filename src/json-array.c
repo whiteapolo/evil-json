@@ -3,6 +3,8 @@
 #include "json.h"
 #include <string.h>
 
+#define JSON_ARRAY_GROWTH_FACTOR 2
+
 // TODO: maybe use smaller integers
 typedef struct {
     Flat_Pool *pool;
@@ -32,10 +34,16 @@ static inline void json_array_push(Json_Value **array, Json_Value value)
     Json_Array_Header *header = json_array_get_header(*array);
 
     if (header->length + 1 > header->capacity) {
-        Json_Value *new_array = json_array_new(header->pool, header->length * 2);
+        Json_Value *new_array = json_array_new(header->pool, header->length * JSON_ARRAY_GROWTH_FACTOR);
         memcpy(new_array, *array, header->length * sizeof(Json_Value));
         *array = new_array;
     }
 
     (*array)[header->length++] = value;
+}
+
+size_t json_array_length(Json_Value *array)
+{
+    Json_Array_Header *header = json_array_get_header(array);
+    return header->length;
 }

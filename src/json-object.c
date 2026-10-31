@@ -1,6 +1,7 @@
 #include "json-object.h"
 
-// TODO: maybe use smaller integers
+#define JSON_OBJECT_GROWTH_FACTOR 2
+
 typedef struct {
     Flat_Pool *pool;
     size_t length;
@@ -14,7 +15,7 @@ static inline Json_Object_Header *json_object_get_header(Json_Object_Entry *obje
 
 Json_Object_Entry *json_object_new(Flat_Pool *pool, size_t capacity)
 {
-    size_t mem_size = sizeof(Json_Object_Header) + sizeof(Json_Value) * capacity;
+    size_t mem_size = sizeof(Json_Object_Header) + sizeof(Json_Object_Entry) * capacity;
     Json_Object_Header *mem = flat_pool_allocate(pool, mem_size);
 
     mem->pool = pool;
@@ -29,7 +30,7 @@ static inline void json_object_push(Json_Object_Entry **object, Json_String key,
     Json_Object_Header *header = json_object_get_header(*object);
 
     if (header->length + 1 > header->capacity) {
-        Json_Object_Entry *new_object = json_object_new(header->pool, header->length * 2);
+        Json_Object_Entry *new_object = json_object_new(header->pool, header->length * JSON_OBJECT_GROWTH_FACTOR);
         memcpy(new_object, *object, header->length * sizeof(Json_Object_Entry));
         *object = new_object;
     }
@@ -40,4 +41,10 @@ static inline void json_object_push(Json_Object_Entry **object, Json_String key,
     };
 
     (*object)[header->length++] = entry;
+}
+
+size_t json_object_size(Json_Object_Entry *object)
+{
+    Json_Object_Header *header = json_object_get_header(object);
+    return header->length;
 }

@@ -11,6 +11,7 @@ typedef struct {
 } Json_Object_Entry;
 
 Json_Object_Entry *json_object_new(Flat_Pool *pool, size_t capacity);
+size_t json_object_size(Json_Object_Entry *object);
 static inline void json_object_push(Json_Object_Entry **object, Json_String key, Json_Value value);
 
 #endif
