@@ -1,0 +1,11 @@
+{
+  "id": 101,
+  "name": "Alice Johnson",
+  "isPremium": true,
+  "roles": ["admin", "user"],
+  "location": {
+    "city": "Seattle",
+    "country": "USA"
+  }
+}
+
