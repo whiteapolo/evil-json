@@ -1,2 +1,2 @@
 all:
-	cc src/main.c -o exe -O0 -lm -g
+	cc -O3 -march=native -flto -pipe src/main.c -o exe -lm

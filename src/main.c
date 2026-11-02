@@ -43,29 +43,43 @@ bool read_file(Flat_Pool *pool, const char *pathname, Json_String *out)
     return true;
 }
 
-int main()
+void die(const char *message)
 {
+    fprintf(stderr, "%s\n", message);
+    exit(1);
+}
+
+void parse_json(Flat_Pool *pool, Json_String document)
+{
+    Time start = get_time();
+    Json_Value value = json_parse(pool, document.ptr, document.length);
+
+    double elapsed_ms = time_elapsed_mseconds(start);
+    double mb_per_second = document.length / time_elapsed_seconds(start) / 1000000.0;
+
+    printf("File size: %lfmb\n", document.length / 1000000.0);
+    printf("Done in %gms (%g MB/s)\n", elapsed_ms, mb_per_second);
+    printf("Total memory used: %lfmb\n", pool->offset / 1000000.0);
+
+    // print_json(value);
+}
+
+int main(int argc, char **argv)
+{
+    if (argc != 2) {
+        die("exe <file.json>");
+    }
+
+    const char *file = argv[1];
     Flat_Pool pool = flat_pool_new();
     Json_String document;
 
-    const char *file = "data/evil-5mb.json";
-
     if (!read_file(&pool, file, &document)) {
-        perror("Opps");
+        perror("Cannot read file");
         exit(1);
     }
 
-    Time start = get_time();
-    Json_Value value = json_parse(&pool, document.ptr, document.length);
-    time_print_elapsed_mseconds(start);
-
-    double mb_per_second = document.length / time_elapsed_seconds(start) / 1000000.0;
-    printf("(%g MB/s)\n", mb_per_second);
-
-    printf("File size: %lfmb\n", document.length / 1000000.0);
-    printf("Total memory used: %lfmb\n", pool.offset / 1000000.0);
-
-    print_json(value);
+    parse_json(&pool, document);
 
     flat_pool_free(&pool);
 

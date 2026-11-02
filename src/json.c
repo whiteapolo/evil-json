@@ -11,6 +11,9 @@
 
 #define MIN_CAPACITY 16
 
+#define likely(x)    __builtin_expect(!!(x), 1)
+#define unlikely(x)  __builtin_expect(!!(x), 0)
+
 typedef struct {
     Json_String document;
     size_t curr;
@@ -90,15 +93,14 @@ static inline bool json_match_case_insensitive(Json_Parse_State *state, char exp
 
 static inline void json_die(Json_Parse_State *state)
 {
-    char buf[256];
-    strncpy(buf, state->document.ptr + state->curr, 256);
-    fprintf(stderr, "Failed at curr=%zu\nline: @%s@\n", state->curr, buf);
+    fprintf(stderr, "Failed at byte=%zu\n\n", state->curr);
     exit(1);
 }
 
 static inline void json_expect(Json_Parse_State *state, char expected)
 {
     if (!json_match(state, expected)) {
+        fprintf(stderr, "Expected '%c' but found '%c'\n", expected, json_peek(state));
         json_die(state);
     }
 }
