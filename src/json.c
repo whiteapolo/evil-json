@@ -15,21 +15,21 @@
 #define unlikely(x)  __builtin_expect(!!(x), 0)
 
 typedef struct {
-    Json_String document;
-    size_t curr;
     Flat_Pool *pool;
+    const char *end;
+    const char *curr;
 } Json_Parse_State;
 
 Json_Value json_parse_value(Json_Parse_State *state);
 
 static inline bool json_is_at_end(Json_Parse_State *state)
 {
-    return state->curr == state->document.length;
+    return state->curr == state->end;
 }
 
 static inline char json_peek(Json_Parse_State *state)
 {
-    return state->document.ptr[state->curr];
+    return *state->curr;
 }
 
 static inline char json_check(Json_Parse_State *state, char expected)
@@ -39,16 +39,16 @@ static inline char json_check(Json_Parse_State *state, char expected)
 
 static inline bool json_check_string(Json_Parse_State *state, Json_String expected)
 {
-    if (state->document.length - state->curr < expected.length) {
+    if (state->end - state->curr < expected.length) {
         return false;
     }
 
-    return strncmp(state->document.ptr + state->curr, expected.ptr, expected.length) == 0;
+    return strncmp(state->curr, expected.ptr, expected.length) == 0;
 }
 
 static inline char json_advance(Json_Parse_State *state)
 {
-    return state->document.ptr[state->curr++];
+    return *state->curr++;
 }
 
 static inline void json_advance_n(Json_Parse_State *state, size_t n)
@@ -191,8 +191,8 @@ static inline Json_Value json_parse_string(Json_Parse_State *state)
 {
     json_expect(state, '"');
 
-    const char *start = state->document.ptr + state->curr;
-    const char *end = memchr(state->document.ptr + state->curr, '"', state->document.length - state->curr);
+    const char *start = state->curr;
+    const char *end = memchr(state->curr, '"', state->end - state->curr);
 
     if (end == NULL) {
         json_die(state);
@@ -365,11 +365,8 @@ Json_Value json_parse(Flat_Pool *pool, const char *document, size_t length)
 {
     Json_Parse_State state = {
         .pool = pool,
-        .curr = 0,
-        .document = {
-            .ptr = document,
-            .length = length,
-        },
+        .curr = document,
+        .end = document + length,
     };
 
     return json_parse_value(&state);
